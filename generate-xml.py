@@ -149,8 +149,13 @@ def main(input, id, fullname, address, zip, city, dob, tel, email):
 
     for index, sa in symbol_activity.iterrows():
       date = dateFormat(sa["Date"])
-      qty = sa["Quantity"].quantize(FOURPLACES)
+      qty = sa["Quantity"]
       price = sa["Price per share"]
+      total = sa["Total Amount"]
+      if abs(qty * price - total) > 1e-1:
+        raise Exception("[ERROR] Copied wrong values?")
+      qty = qty.quantize(FOURPLACES)
+
       if sa["Currency"] == 'EUR':
         sharepriceEUR = price
       else:
