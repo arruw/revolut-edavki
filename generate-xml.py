@@ -12,7 +12,7 @@ import os
 FOURPLACES = D.Decimal(10) ** -4
 
 def toDate(string):
-  string = string[:10]
+  string = string.strip()[:10]
   return datetime.strptime(string, "%d/%m/%Y").date()
 
 def dateFormat(date):
@@ -34,6 +34,9 @@ def toDecimal(x):
     return D.Decimal(x)
   except:
     return None
+
+def strippedString(s):
+  return s.strip()
 
 @click.command()
 @click.option("--input",      required=True, help="Revolut Activity CSV file")
@@ -58,8 +61,23 @@ def main(input, id, fullname, address, zip, city, dob, tel, email):
                 "Price per share": toDecimal,
                 "Total Amount": toDecimal,
                 'Date': toDate,
+                'Type': strippedString,
+                'Currency': strippedString,
               }
   )
+
+  type_mapping = {
+    'EIS Investment': 'BUY',
+    'EIS Sale': 'SELL',
+    'SEIS Investment': 'BUY',
+    'SEIS Sale': 'SELL',
+    'Investment': 'BUY',
+    'Sale': 'SELL',
+    'Purchase': 'BUY',
+  }
+  for key in type_mapping.keys():
+    activity['Type'] = activity['Type'].replace([key], type_mapping[key])
+
   activity = activity[(activity['Type'] == 'BUY') | (activity['Type'] == 'SELL')]
 
   root_el = ET.Element("Envelope", attrib={
